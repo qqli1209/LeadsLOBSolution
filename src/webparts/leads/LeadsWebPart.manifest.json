@@ -9,7 +9,7 @@
 
   "requiresCustomScript": false,
   
-  // Make it available for Microsoft Teams and Single page application
+  // Make it available for Microsoft Teams
   "supportedHosts": ["SharePointWebPart", "TeamsTab"],
 
   "preconfiguredEntries": [{
