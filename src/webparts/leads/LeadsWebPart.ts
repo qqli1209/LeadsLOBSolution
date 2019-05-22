@@ -1,6 +1,5 @@
 import * as React from 'react';
 import * as ReactDom from 'react-dom';
-import { Version } from '@microsoft/sp-core-library';
 import {
   BaseClientSideWebPart,
   IPropertyPaneConfiguration,
@@ -24,7 +23,6 @@ export interface ILeadsWebPartProps {
 }
 
 export default class LeadsWebPart extends BaseClientSideWebPart<ILeadsWebPartProps> {
-
   private needsConfiguration: boolean;
   private leadsApiUrl: string;
   private connectionStatus: string;
@@ -35,7 +33,7 @@ export default class LeadsWebPart extends BaseClientSideWebPart<ILeadsWebPartPro
       return Promise.resolve();
     }
 
-    return this.getApiUrl();
+    return this._getApiUrl();
   }
 
   public render(): void {
@@ -54,25 +52,6 @@ export default class LeadsWebPart extends BaseClientSideWebPart<ILeadsWebPartPro
 
   protected onDispose(): void {
     ReactDom.unmountComponentAtNode(this.domElement);
-  }
-
-  protected get dataVersion(): Version {
-    return Version.parse('1.0');
-  }
-
-  private testConnection = (): void => {
-    this.connectionStatus = 'Connecting to the API...';
-    this.context.propertyPane.refresh();
-
-    this.context.httpClient
-      .get(this.leadsApiUrl, HttpClient.configurations.v1)
-      .then((res: HttpClientResponse): void => {
-        this.connectionStatus = 'Connection OK';
-        this.context.propertyPane.refresh();
-      }, (error: any): void => {
-        this.connectionStatus = `Connection error: ${error}`;
-        this.context.propertyPane.refresh();
-      });
   }
 
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
@@ -124,10 +103,10 @@ export default class LeadsWebPart extends BaseClientSideWebPart<ILeadsWebPartPro
                   disabled: true
                 }),
                 PropertyPaneLabel('spacer1', { text: '' }),
-                PropertyPaneButton('testConnection', {
+                PropertyPaneButton('_testConnection', {
                   buttonType: PropertyPaneButtonType.Primary,
                   disabled: this.needsConfiguration,
-                  onClick: this.testConnection,
+                  onClick: this._testConnection,
                   text: 'Test connection'
                 }),
                 PropertyPaneLabel('connectionStatus', {
@@ -149,12 +128,12 @@ export default class LeadsWebPart extends BaseClientSideWebPart<ILeadsWebPartPro
       }
       else {
         this.needsConfiguration = true;
-        this.getApiUrl(true);
+        this._getApiUrl(true);
       }
     }
   }
 
-  private getApiUrl(reRender: boolean = false): Promise<void> {
+  private _getApiUrl(reRender: boolean = false): Promise<void> {
     return new Promise<void>((resolve: () => void, reject: (err: any) => void): void => {
       this.context.spHttpClient
         .get(`${this.context.pageContext.web.absoluteUrl}/_api/web/GetStorageEntity('LeadsApiUrl')`, SPHttpClient.configurations.v1)
@@ -172,5 +151,20 @@ export default class LeadsWebPart extends BaseClientSideWebPart<ILeadsWebPartPro
           reject(err);
         });
     });
+  }
+
+  private _testConnection = (): void => {
+    this.connectionStatus = 'Connecting to the API...';
+    this.context.propertyPane.refresh();
+
+    this.context.httpClient
+      .get(this.leadsApiUrl, HttpClient.configurations.v1)
+      .then((res: HttpClientResponse): void => {
+        this.connectionStatus = 'Connection OK';
+        this.context.propertyPane.refresh();
+      }, (error: any): void => {
+        this.connectionStatus = `Connection error: ${error}`;
+        this.context.propertyPane.refresh();
+      });
   }
 }
